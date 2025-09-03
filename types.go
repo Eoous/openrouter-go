@@ -1,17 +1,21 @@
 package openroutergo
 
-type OpenRouterOptionalConfig struct {
-	SiteUrl  string
-	SiteName string
+type Role string
+
+const (
+	RoleSystem    Role = "system"
+	RoleUser      Role = "user"
+	RoleAssistant Role = "assistant"
+)
+
+func (r Role) New(content string) Message {
+	return Message{
+		Role:    r,
+		Content: content,
+	}
 }
 
-type OpenRouterConfig struct {
-	key string
-	OpenRouterOptionalConfig
-}
-
-func (c *OpenRouterConfig) WithKey(key string) *OpenRouterConfig {
-	c.key = key
-
-	return c
+type Message struct {
+	Role    Role   `json:"role"`
+	Content string `json:"content"`
 }
