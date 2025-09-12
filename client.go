@@ -64,7 +64,21 @@ func (c *Client) WithStream(stream bool) *Client {
 	return c
 }
 
+// validate checks if the client is properly configured.
+func (c *Client) validate() error {
+	if c.params.Model == "" {
+		return errors.New("model is required")
+	}
+
+	return nil
+}
+
 func (c *Client) ChatCompletions(msgs []Message) (*OpenRouterResponse, error) {
+	err := c.validate()
+	if err != nil {
+		return nil, err
+	}
+
 	body := request{
 		Params:   c.params,
 		Messages: msgs,
