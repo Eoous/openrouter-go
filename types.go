@@ -1,11 +1,17 @@
 package openroutergo
 
+import (
+	"errors"
+)
+
 type Role string
 
 const (
 	RoleSystem    Role = "system"
 	RoleUser      Role = "user"
 	RoleAssistant Role = "assistant"
+	RoleDeveloper Role = "developer"
+	RoleTool      Role = "tool"
 )
 
 func (r Role) New(content string) Message {
@@ -20,13 +26,43 @@ type Message struct {
 	Content string `json:"content"`
 }
 
-type OpenRouterParams struct {
-	Model      string    `json:"model"`
-	Messages   []Message `json:"messages"`
-	Modalities []string  `json:"modalities"`
+type Params struct {
+	Model string `json:"model"`
+
+	// Alternate list of models for routing overrides.
+	Models []string `json:"models,omitempty"`
+	// Provider
+	// Reasoning
+	// Usage
+	// Transforms
+	Stream      bool    `json:"stream,omitempty"`
+	MaxTokens   int     `json:"max_tokens,omitempty"`
+	Temperature float64 `json:"temperature,omitempty"`
+	Seed        int     `json:"seed,omitempty"`
+
+	TopP float64 `json:"top_p,omitempty"`
+	TopK float64 `json:"top_k,omitempty"`
+	TopA float64 `json:"top_a,omitempty"`
+	MinP float64 `json:"min_p,omitempty"`
+
+	FrequencyPenalty  float64 `json:"frequency_penalty,omitempty"`
+	PresencePenalty   float64 `json:"presence_penalty,omitempty"`
+	RepetitionPenalty float64 `json:"repetition_penalty,omitempty"`
+
+	// LogitBias
+	TopLogprobs int    `json:"top_logprobs,omitempty"`
+	User        string `json:"user,omitempty"`
+
+	Modalities []string `json:"modalities,omitempty"`
 }
 
-type OpenRouterImage struct {
+type request struct {
+	// Must contain model.
+	Params
+	Messages []Message `json:"messages"`
+}
+
+type OpenRouterImages struct {
 	Type     string `json:"type"`
 	ImageUrl struct {
 		Url string `json:"url"`
@@ -37,9 +73,9 @@ type OpenRouterImage struct {
 type OpenRouterMessage struct {
 	Message
 
-	Refusal   interface{}       `json:"refusal"`
-	Reasoning interface{}       `json:"reasoning"`
-	Images    []OpenRouterImage `json:"images"`
+	Refusal   interface{}        `json:"refusal"`
+	Reasoning interface{}        `json:"reasoning"`
+	Images    []OpenRouterImages `json:"images"`
 }
 
 type OpenRouterUsage struct {
@@ -70,6 +106,26 @@ type OpenRouterResponse struct {
 	} `json:"choices"`
 
 	Usage OpenRouterUsage `json:"usage"`
+}
+
+func (r *OpenRouterResponse) Message() (*Message, error) {
+	if len(r.Choices) == 0 {
+		return nil, errors.New("no choices found")
+	}
+
+	return &r.Choices[0].Message.Message, nil
+}
+
+func (r *OpenRouterResponse) Image() (*OpenRouterImages, error) {
+	if len(r.Choices) == 0 {
+		return nil, errors.New("no choices found")
+	}
+
+	if len(r.Choices[0].Message.Images) == 0 {
+		return nil, errors.New("no images found")
+	}
+
+	return &r.Choices[0].Message.Images[0], nil
 }
 
 type OpenRouterResponseErr struct {
