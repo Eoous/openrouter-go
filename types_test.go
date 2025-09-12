@@ -12,6 +12,8 @@ func TestRoleMessage(t *testing.T) {
 		RoleUser.New("My name is user."),
 		RoleSystem.New("My name is system."),
 		RoleAssistant.New("My name is assistant."),
+		RoleDeveloper.New("My name is developer."),
+		RoleTool.New("My name is tool."),
 	}
 
 	for _, msg := range messages {
