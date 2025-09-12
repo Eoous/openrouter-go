@@ -1,0 +1,41 @@
+[
+  {
+    "error": {
+      "message": "Provider returned error",
+      "code": 400,
+      "metadata": {
+        "raw": "{\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"User location is not supported for the API use.\",\n    \"status\": \"FAILED_PRECONDITION\"\n  }\n}\n",
+        "provider_name": "Google AI Studio"
+      }
+    },
+    "user_id": "user_openrouter"
+  },
+  {
+    "error": {
+      "message": "Insufficient credits. This account never purchased credits. Make sure your key is on the correct account or org, and if so, purchase more at https://openrouter.ai/settings/credits",
+      "code": 402
+    }
+  },
+  {
+    "error": {
+      "message": "Rate limit exceeded: limit_rpd/google/gemini-2.5-flash-image-preview/288ba57e-95c8-44b1-886f-9a9521b8c2c6. Daily limit reached for google/gemini-2.5-flash-image-preview:free via Google AI Studio. Credits don't affect this cap. Add your own keys in https://openrouter.ai/settings/integrations to get a boost.",
+      "code": 429,
+      "metadata": {
+        "headers": {
+          "X-RateLimit-Limit": "5",
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": "1756944000000"
+        },
+        "provider_name": null
+      }
+    },
+    "user_id": "user_openrouter"
+  },
+  {
+    "error": {
+      "message": "No endpoints found for google/gemini-2.5-flash-image-preview:free.",
+      "code": 404
+    },
+    "user_id": "user_openrouter"
+  }
+]
