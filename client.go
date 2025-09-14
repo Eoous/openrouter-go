@@ -1,8 +1,10 @@
 package openroutergo
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
+	"io"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -56,6 +58,20 @@ func (c *Client) WithModel(model string) *Client {
 	return c
 }
 
+// WithMaxTokens sets the maximum number of tokens to generate.
+func (c *Client) WithMaxTokens(maxTokens int) *Client {
+	c.params.MaxTokens = maxTokens
+
+	return c
+}
+
+// WithTemperature sets the temperature for the model.
+func (c *Client) WithTemperature(t float64) *Client {
+	c.params.Temperature = t
+
+	return c
+}
+
 // WithStream enables or disables streaming mode.
 func (c *Client) WithStream(stream bool) *Client {
 	c.params.Stream = stream
@@ -73,26 +89,9 @@ func (c *Client) validate() error {
 	return nil
 }
 
-func (c *Client) ChatCompletions(msgs []Message) (*OpenRouterResponse, error) {
-	err := c.validate()
-	if err != nil {
-		return nil, err
-	}
-
-	body := request{
-		Params:   c.params,
-		Messages: msgs,
-	}
-	r, err := c.client.R().
-		SetBody(body).
-		Post("/chat/completions")
-	if err != nil {
-		return nil, err
-	}
-
-	// todo: handle stream response
+func readOpenRouterResponse(data []byte) (*OpenRouterResponse, error) {
 	var resp openRouterResponse
-	err = json.Unmarshal(r.Body(), &resp)
+	err := json.Unmarshal(data, &resp)
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +101,56 @@ func (c *Client) ChatCompletions(msgs []Message) (*OpenRouterResponse, error) {
 	}
 
 	return resp.OpenRouterResponse, nil
+}
+
+func (c *Client) ChatCompletions(msgs []Msg) (*OpenRouterResponse, error) {
+	if err := c.validate(); err != nil {
+		return nil, err
+	}
+
+	data := request{
+		Params:   c.params,
+		Messages: msgs,
+	}
+	resp, err := c.client.R().
+		SetBody(data).
+		Post("/chat/completions")
+	if err != nil {
+		return nil, err
+	}
+
+	if c.params.Stream {
+		buf := bufio.NewReader(resp.RawBody())
+		for {
+			chunk := make([]byte, 4096)
+			n, err := buf.Read(chunk)
+			if n > 0 {
+				// todo: handle stream response
+			}
+
+			if err != nil {
+				if err == io.EOF {
+					// todo: last chunk
+				}
+
+				break
+			}
+		}
+
+		return nil, nil
+	}
+
+	var orp openRouterResponse
+	err = json.Unmarshal(resp.Body(), &orp)
+	if err != nil {
+		return nil, err
+	}
+
+	if orp.OpenRouterResponseErr != nil {
+		return nil, errors.New(orp.Error.Message)
+	}
+
+	return orp.OpenRouterResponse, nil
 }
 
 type openRouterResponse struct {

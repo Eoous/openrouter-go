@@ -14,14 +14,14 @@ const (
 	RoleTool      Role = "tool"
 )
 
-func (r Role) New(content string) Message {
-	return Message{
+func (r Role) New(content string) Msg {
+	return Msg{
 		Role:    r,
 		Content: content,
 	}
 }
 
-type Message struct {
+type Msg struct {
 	Role    Role   `json:"role"`
 	Content string `json:"content"`
 }
@@ -59,7 +59,7 @@ type Params struct {
 type request struct {
 	// Must contain model.
 	Params
-	Messages []Message `json:"messages"`
+	Messages []Msg `json:"messages"`
 }
 
 type OpenRouterImages struct {
@@ -70,12 +70,14 @@ type OpenRouterImages struct {
 	Index int `json:"index"`
 }
 
-type OpenRouterMessage struct {
-	Message
+type OpenRouterMsg struct {
+	Msg
 
-	Refusal   interface{}        `json:"refusal"`
-	Reasoning interface{}        `json:"reasoning"`
-	Images    []OpenRouterImages `json:"images"`
+	Refusal          interface{}   `json:"refusal,omitempty"`
+	Reasoning        string        `json:"reasoning,omitempty"`
+	ReasoningDetails []interface{} `json:"reasoning_details,omitempty"`
+
+	Images []OpenRouterImages `json:"images,omitempty"`
 }
 
 type OpenRouterUsage struct {
@@ -98,22 +100,27 @@ type OpenRouterResponse struct {
 	Object   string `json:"object"`
 	Created  int64  `json:"created"`
 	Choices  []struct {
-		Logprobs           interface{}       `json:"logprobs"`
-		FinishReason       string            `json:"finish_reason"`
-		NativeFinishReason string            `json:"native_finish_reason"`
-		Index              int               `json:"index"`
-		Message            OpenRouterMessage `json:"message"`
+		Logprobs           interface{}   `json:"logprobs"`
+		FinishReason       string        `json:"finish_reason"`
+		NativeFinishReason string        `json:"native_finish_reason"`
+		Index              int           `json:"index"`
+		Message            OpenRouterMsg `json:"message"`
 	} `json:"choices"`
 
 	Usage OpenRouterUsage `json:"usage"`
 }
 
-func (r *OpenRouterResponse) Message() (*Message, error) {
+type Message interface {
+	Message() (*Msg, error)
+	Image() (*OpenRouterImages, error)
+}
+
+func (r *OpenRouterResponse) Message() (*Msg, error) {
 	if len(r.Choices) == 0 {
 		return nil, errors.New("no choices found")
 	}
 
-	return &r.Choices[0].Message.Message, nil
+	return &r.Choices[0].Message.Msg, nil
 }
 
 func (r *OpenRouterResponse) Image() (*OpenRouterImages, error) {
