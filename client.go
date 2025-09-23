@@ -73,7 +73,7 @@ func (c *Client) validate() error {
 	return nil
 }
 
-func (c *Client) ChatCompletions(msgs []Message) (*OpenRouterResponse, error) {
+func (c *Client) ChatCompletions(msgs []Msg) (*OpenRouterResponse, error) {
 	err := c.validate()
 	if err != nil {
 		return nil, err
