@@ -8,7 +8,7 @@ import (
 )
 
 func TestRoleMessage(t *testing.T) {
-	messages := []Message{
+	messages := []Msg{
 		RoleUser.New("My name is user."),
 		RoleSystem.New("My name is system."),
 		RoleAssistant.New("My name is assistant."),
@@ -20,7 +20,7 @@ func TestRoleMessage(t *testing.T) {
 		b, err := json.Marshal(msg)
 		assert.NoError(t, err)
 
-		var m Message
+		var m Msg
 		assert.NoError(t, json.Unmarshal(b, &m))
 		assert.Equal(t, msg, m)
 	}
