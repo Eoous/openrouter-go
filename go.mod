@@ -1,4 +1,4 @@
-module github.com/Eoous/openrouter
+module github.com/eoous/openrouter-go
 
 go 1.22.0
 
